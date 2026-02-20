@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="TrustChain PDS – End-to-End Public Distribution Integrity Network for preventing diversion and ensuring accountability">
+    <title>TrustChain PDS – Public Distribution Integrity Network</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <!-- ═══ LOGIN PAGE ═══ -->
+    <div id="authPage" class="auth-page">
+        <div class="auth-container">
+            <div class="auth-brand">
+                <div class="auth-shield">🛡</div>
+                <h1>TrustChain <span class="text-accent">PDS</span></h1>
+                <p class="auth-subtitle">End-to-End Public Distribution Integrity Network</p>
+            </div>
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+                </div>
+                <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="admin@trustchain.gov.in" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="password123" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Sign In →</button>
+                    <div id="loginError" class="form-error"></div>
+                    <div style="text-align:right;margin-top:8px">
+                        <a href="#" onclick="showForgotPassword(event)" style="font-size:0.8rem;color:var(--earth-clay);text-decoration:underline">Forgot Password?</a>
+                    </div>
+                </form>
+                <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="regName" placeholder="Your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="regEmail" placeholder="you@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="regPassword" placeholder="Min 6 characters" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="regRole">
+                            <option value="citizen">Citizen</option>
+                            <option value="shop_dealer">Shop Dealer</option>
+                            <option value="warehouse_manager">Warehouse Manager</option>
+                            <option value="super_admin">Super Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Create Account →</button>
+                    <div id="regError" class="form-error"></div>
+                </form>
+                <!-- Forgot Password Form -->
+                <div id="forgotPasswordSection" class="auth-form hidden" style="padding-top:0">
+                    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">Enter your registered email to receive a reset token.</p>
+                    <form onsubmit="submitForgotPassword(event)">
+                        <div class="form-group">
+                            <label>Registered Email</label>
+                            <input type="email" id="fpEmail" placeholder="you@email.com" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Send Reset Token</button>
+                        <div id="fpMessage" class="form-error" style="margin-top:8px"></div>
+                    </form>
+                </div>
+                <!-- Reset Password Form -->
+                <div id="resetPasswordSection" class="auth-form hidden" style="padding-top:0">
+                    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">Enter the reset token you received and your new password.</p>
+                    <form onsubmit="submitResetPassword(event)">
+                        <div class="form-group">
+                            <label>Reset Token</label>
+                            <input type="text" id="rpToken" placeholder="Paste token here" required style="font-family:monospace;font-size:0.8rem">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="rpNewPassword" placeholder="Min 6 characters" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Reset Password</button>
+                        <div id="rpMessage" class="form-error" style="margin-top:8px"></div>
+                    </form>
+                </div>
+                <div class="demo-accounts">
+                    <p class="demo-title">Demo Accounts:</p>
+                    <div class="demo-grid">
+                        <button class="demo-btn" onclick="quickLogin('admin@trustchain.gov.in')">🏛 Admin</button>
+                        <button class="demo-btn" onclick="quickLogin('wh.tvm@trustchain.gov.in')">🏭 Warehouse</button>
+                        <button class="demo-btn" onclick="quickLogin('dealer.kzk@trustchain.gov.in')">🏪 Dealer</button>
+                        <button class="demo-btn" onclick="quickLogin('ravi@citizen.in')">👤 Citizen</button>
+                        <button class="demo-btn" onclick="quickLogin('farmer@trustchain.gov.in')">🌾 Farmer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MAIN APP ═══ -->
+    <div id="mainApp" class="main-app hidden">
+        <!-- TOP NAV -->
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <span class="nav-shield">🛡</span>
+                <span class="nav-title">TrustChain <span class="text-accent">PDS</span></span>
+            </div>
+            <div class="nav-role-tabs" id="roleTabs"></div>
+            <div class="nav-user">
+                <span id="userName" class="user-name"></span>
+                <span id="userRole" class="user-badge"></span>
+                <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- MODULE PANELS -->
+        <main class="app-main">
+
+            <!-- ═══ ADMIN MODULE ═══ -->
+            <section id="module-admin" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>⚙ Admin Control Panel</h2>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">💰 Official Price Management</h3>
+                    <p style="color:var(--text-muted);margin-bottom:12px;font-size:0.85rem">Set government-fixed prices
+                        for all items. Changes apply immediately to all shops.</p>
+                    <div class="table-container" id="pricingTable"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📢 All Complaints</h3>
+                    <div class="table-container" id="adminComplaintsTable"></div>
+                </div>
+
+                <div class="card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+                        <h3 class="card-title" style="border:none;padding:0;margin:0">🚨 System Alerts</h3>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <select id="alertSeverityFilter" class="select-styled" style="max-width:140px" onchange="loadAdminAlerts()">
+                                <option value="">All Severities</option>
+                                <option value="high">🔴 High</option>
+                                <option value="medium">🟡 Medium</option>
+                                <option value="low">🟢 Low</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" onclick="runAnomalyCheck()">⚡ Run Check</button>
+                        </div>
+                    </div>
+                    <p style="color:var(--text-muted);margin-bottom:12px;font-size:0.85rem">QR mismatches, after-hours
+                        violations, payment delays, and moisture anomalies.</p>
+                    <div class="table-container" id="adminAlertsTable"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📦 Live Batch Tracking</h3>
+                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                        <select id="batchStatusFilter" class="select-styled" style="max-width:160px"
+                            onchange="loadAdminBatches()">
+                            <option value="">All Statuses</option>
+                            <option value="CREATED">Created</option>
+                            <option value="DISPATCHED">Dispatched</option>
+                            <option value="RECEIVED">Received</option>
+                            <option value="DISTRIBUTED">Distributed</option>
+                        </select>
+                    </div>
+                    <div class="table-container" id="adminBatchTable"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🔍 QR Scan Log</h3>
+                    <div class="table-container" id="adminScanLogTable"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🌾 Farmer Payment Monitor</h3>
+                    <div class="table-container" id="adminFarmerPayTable"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🗓 Seasonal Commodity Tracker</h3>
+                    <div class="table-container" id="adminCommodityTable"></div>
+                </div>
+            </section>
+
+            <!-- ═══ WAREHOUSE MODULE ═══ -->
+            <section id="module-warehouse" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>🏭 Warehouse Intelligence Module</h2>
+                    <select id="warehouseSelect" class="select-styled" onchange="loadWarehouse()"></select>
+                </div>
+
+                <div class="kpi-grid" id="warehouseKPIs"></div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">📥 Add Inbound Stock</h3>
+                        <form onsubmit="addInbound(event)" class="form-inline">
+                            <select id="inboundItem" class="select-styled" required>
+                                <option value="rice">Rice</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="sugar">Sugar</option>
+                            </select>
+                            <input type="number" id="inboundQty" placeholder="Quantity (kg)" min="1" required>
+                            <button type="submit" class="btn btn-primary">Add Stock</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">📤 Dispatch to Shop</h3>
+                        <form onsubmit="dispatchStock(event)" class="form-inline">
+                            <select id="dispatchShop" class="select-styled" required></select>
+                            <select id="dispatchItem" class="select-styled" required>
+                                <option value="rice">Rice</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="sugar">Sugar</option>
+                            </select>
+                            <input type="number" id="dispatchQty" placeholder="Quantity (kg)" min="1" required>
+                            <button type="submit" class="btn btn-accent">Dispatch</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">⚠ Log Damage Claim</h3>
+                        <form onsubmit="logDamage(event)" class="form-inline">
+                            <select id="damageItem" class="select-styled" required>
+                                <option value="rice">Rice</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="sugar">Sugar</option>
+                            </select>
+                            <input type="number" id="damageQty" placeholder="Quantity (kg)" min="1" required>
+                            <input type="text" id="damageReason" placeholder="Reason">
+                            <button type="submit" class="btn btn-danger">Log Damage</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">🔒 Risk Assessment</h3>
+                        <div id="warehouseRiskMeter" class="risk-meter-container"></div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">📊 Stock Movement</h3>
+                        <canvas id="stockMovementChart"></canvas>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">📦 Dispatch Trends</h3>
+                        <canvas id="dispatchTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📋 Recent Dispatch Log</h3>
+                    <div class="table-container" id="dispatchLogTable"></div>
+                </div>
+            </section>
+
+            <!-- ═══ SHOP MODULE ═══ -->
+            <section id="module-shop" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>🏪 Ration Shop Control Panel</h2>
+                    <select id="shopSelect" class="select-styled" onchange="loadShop()"></select>
+                </div>
+
+                <div class="kpi-grid" id="shopKPIs"></div>
+
+                <div class="card" id="shopStatusToggle" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                    <div>
+                        <h3 class="card-title" style="margin-bottom:4px;border:none;padding-bottom:0">🔴 Shop Status Control</h3>
+                        <p id="shopStatusLabel" style="color:var(--text-muted);font-size:0.85rem">Loading status...</p>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <span id="shopStatusBadge" class="badge badge-green" style="font-size:0.85rem;padding:5px 14px">OPEN</span>
+                        <button id="shopToggleBtn" class="btn btn-primary" onclick="toggleShopStatus()">Toggle Status</button>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">💰 Process Transaction</h3>
+                        <form onsubmit="processTransaction(event)">
+                            <div class="form-group">
+                                <label>Ration Card Number</label>
+                                <div class="weighing-input-group">
+                                    <input type="text" id="txRationCard" placeholder="e.g. KL-TVM-1000001" required
+                                        style="text-transform:uppercase">
+                                    <select id="txCardType" class="select-styled" style="max-width:120px">
+                                        <option value="">Any</option>
+                                        <option value="White">White</option>
+                                        <option value="Pink">Pink</option>
+                                        <option value="Yellow">Yellow</option>
+                                    </select>
+                                    <button type="button" class="btn btn-primary" onclick="lookupBeneficiary()">🔍
+                                        Lookup</button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="txBeneficiary" value="">
+                            <div id="beneficiaryInfo" class="info-box hidden"></div>
+                            <div id="familyMembersPanel" class="hidden" style="margin-top:12px">
+                                <p style="font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:8px">👨‍👩‍👧‍👦 FAMILY MEMBERS</p>
+                                <div id="familyMembersTable"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Item</label>
+                                    <select id="txItem" class="select-styled" required>
+                                        <option value="rice">Rice</option>
+                                        <option value="wheat">Wheat</option>
+                                        <option value="sugar">Sugar</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantity (kg) – from scale</label>
+                                    <div class="weighing-input-group">
+                                        <input type="number" id="txQuantity" min="0.1" step="0.001" required readonly
+                                            placeholder="Place item on scale">
+                                        <button type="button" class="btn btn-weigh" onclick="readWeighingScale()">⚖ Read
+                                            Scale</button>
+                                    </div>
+                                    <div id="weighingStatus" class="weighing-status hidden"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Official Price (₹/kg) — <em>auto-filled from admin settings</em></label>
+                                <input type="number" id="txPrice" step="0.5" required readonly class="input-readonly">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Process Transaction</button>
+                        </form>
+                        <div id="txResult" class="tx-result hidden"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">🔒 Shop Risk Score</h3>
+                        <div id="shopRiskMeter" class="risk-meter-container"></div>
+                        <div id="shopRiskBreakdown" class="risk-breakdown"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📋 Recent Transactions</h3>
+                    <div class="table-container" id="shopTxTable"></div>
+                </div>
+            </section>
+
+            <!-- ═══ CITIZEN MODULE ═══ -->
+            <section id="module-citizen" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>👥 Citizen Transparency Portal</h2>
+                </div>
+
+                <!-- CITIZEN SUB-TABS -->
+                <div class="citizen-tabs">
+                    <button class="citizen-tab active" onclick="switchCitizenTab('orders')">🧾 My Orders &
+                        Bills</button>
+                    <button class="citizen-tab" onclick="switchCitizenTab('shops')">🏪 Shop Stock</button>
+                    <button class="citizen-tab" onclick="switchCitizenTab('prices')">💲 Prices</button>
+                    <button class="citizen-tab" onclick="switchCitizenTab('complaints')">📝 Complaints</button>
+                </div>
+
+                <!-- Orders & Bills Sub-tab -->
+                <div id="citizen-tab-orders" class="citizen-tab-panel">
+                    <div class="card">
+                        <h3 class="card-title">🧾 My Order History</h3>
+                        <div class="table-container" id="citizenOrdersTable"></div>
+                    </div>
+                </div>
+
+                <!-- Shops Stock Sub-tab -->
+                <div id="citizen-tab-shops" class="citizen-tab-panel hidden">
+                    <div class="card">
+                        <h3 class="card-title">🏪 Live Shop Stock Availability</h3>
+                        <div class="table-container" id="citizenShopTable"></div>
+                    </div>
+                </div>
+
+                <!-- Prices Sub-tab -->
+                <div id="citizen-tab-prices" class="citizen-tab-panel hidden">
+                    <div class="card">
+                        <h3 class="card-title">💲 Official Price List (Government Fixed)</h3>
+                        <div id="priceList"></div>
+                    </div>
+                </div>
+
+                <!-- Complaints Sub-tab -->
+                <div id="citizen-tab-complaints" class="citizen-tab-panel hidden">
+                    <div class="grid-2">
+                        <div class="card">
+                            <h3 class="card-title">📝 Submit Complaint</h3>
+                            <form onsubmit="submitComplaint(event)">
+                                <div class="form-group">
+                                    <label>Select Shop</label>
+                                    <select id="complaintShop" class="select-styled" required></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Your Name</label>
+                                    <input type="text" id="complaintName" placeholder="Optional">
+                                </div>
+                                <div class="form-group">
+                                    <label>Complaint Description</label>
+                                    <textarea id="complaintText" rows="3" placeholder="Describe the issue in detail..."
+                                        required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Submit Complaint</button>
+                            </form>
+                            <div id="complaintResult" class="tx-result hidden"></div>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">📢 My Complaints</h3>
+                            <div class="table-container" id="complaintsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ ANALYTICS MODULE ═══ -->
+            <section id="module-analytics" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>📊 Predictive Analytics & Diversion Intelligence</h2>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">⏰ Shortage Forecast</h3>
+                    <div class="kpi-grid" id="shortageCards"></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">🔁 Restock Recommendations</h3>
+                        <div class="table-container" id="restockTable"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">📈 Consumption Trends</h3>
+                        <canvas id="consumptionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🗺 District Risk Heatmap</h3>
+                    <div id="riskHeatmap" class="heatmap-grid"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🏆 Shop Compliance Ranking</h3>
+                    <div class="table-container" id="complianceRanking"></div>
+                </div>
+            </section>
+
+            <!-- ═══ REPORT MODULE ═══ -->
+            <section id="module-report" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>📄 Monthly Public Integrity Report</h2>
+                    <div class="module-actions">
+                        <select id="reportShop" class="select-styled" onchange="generateReport()"></select>
+                        <button class="btn btn-accent" onclick="downloadReportPDF()">📥 Download PDF</button>
+                    </div>
+                </div>
+                <div id="reportContent" class="report-container"></div>
+            </section>
+
+            <!-- ═══ SUPPLY CHAIN MODULE ═══ -->
+            <section id="module-supplychain" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>🔄 End-to-End Supply Chain Visualization</h2>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Supply Chain Flow</h3>
+                    <div id="supplyChainFlow" class="flow-container"></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">📦 Stock Reconciliation</h3>
+                        <div class="table-container" id="reconciliationTable"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">🏷 Batch Tracking</h3>
+                        <div class="table-container" id="batchTracker"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📋 Transaction Log</h3>
+                    <div class="table-container" id="supplyChainLog"></div>
+                </div>
+            </section>
+
+            <!-- ═══ RISK ENGINE MODULE ═══ -->
+            <section id="module-risk" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>🛡 Risk Scoring Engine</h2>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">⚖ Weight Configuration</h3>
+                    <div id="weightConfig" class="weight-grid"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📊 Shop Risk Score Breakdown</h3>
+                    <div class="table-container" id="riskBreakdownTable"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🏆 Public Risk Score Leaderboard</h3>
+                    <div id="riskLeaderboard"></div>
+                </div>
+            </section>
+
+            <!-- ═══ FARMER MODULE ═══ -->
+            <section id="module-farmer" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>🌾 Farmer Transparency Portal</h2>
+                </div>
+                <div class="kpi-grid" id="farmerKpiGrid"></div>
+
+                <div class="card">
+                    <h3 class="card-title">📋 Supply & Invoice History</h3>
+                    <div class="table-container" id="farmerTxTable"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📊 Moisture Readings</h3>
+                    <div class="table-container" id="farmerMoistureTable"></div>
+                </div>
+            
+                <!-- === FARMER SUPPLY ENTRY FORM === -->
+                <div class="card">
+                    <h3 class="card-title">📦 Submit New Supply</h3>
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px">Enter the commodity details you are delivering to the warehouse. Net quantity is auto-calculated from gross weight minus tare.</p>
+                    <form id="farmerSupplyForm" onsubmit="submitFarmerSupply(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Commodity</label>
+                                <select id="fsyCommodity" class="select-styled" required>
+                                    <option value="rice">&#127807; Rice</option>
+                                    <option value="wheat">&#127807; Wheat</option>
+                                    <option value="sugar">Sugar</option>
+                                    <option value="maida">Maida</option>
+                                    <option value="atta">Atta</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Gross Weight (kg) <small style="color:var(--text-muted)">— total incl. sacks</small></label>
+                                <input type="number" id="fsyWeight" min="1" step="0.1" placeholder="e.g. 520" required oninput="calcFarmerNet()">
+                            </div>
+                            <div class="form-group">
+                                <label>Tare / Sack Weight (kg) <small style="color:var(--text-muted)">— auto-deducted</small></label>
+                                <input type="number" id="fsyTare" min="0" step="0.1" placeholder="e.g. 0.5" value="0" oninput="calcFarmerNet()">
+                            </div>
+                            <div class="form-group">
+                                <label>Net Quantity (kg) <small style="color:var(--text-muted)">— editable</small></label>
+                                <input type="number" id="fsyQty" min="1" step="0.1" placeholder="Auto-filled from above" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Moisture Level (%) <span id="moistureBadge" style="font-size:0.75rem;margin-left:6px"></span></label>
+                                <input type="number" id="fsyMoisture" min="0" max="30" step="0.1" placeholder="e.g. 12.5" required oninput="updateMoistureBadge()">
+                            </div>
+                        </div>
+                        <div id="fsyPreview" class="info-box hidden" style="margin-bottom:14px;font-size:0.85rem"></div>
+                        <button type="submit" class="btn btn-primary">Submit Supply &amp; Generate QR Batch</button>
+                    </form>
+                    <div id="fsyResult" class="hidden" style="margin-top:16px"></div>
+                </div>
+            </section>
+
+            <!-- ═══ BATCH DISPATCH (Warehouse Sub-panel) ═══ -->
+            <section id="module-batches" class="module-panel hidden">
+                <div class="module-header">
+                    <h2>📦 QR Sack Dispatch</h2>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                    <div class="card">
+                        <h3 class="card-title">➕ Create & Dispatch Batch</h3>
+                        <form onsubmit="createBatch(event)">
+                            <div class="form-group">
+                                <label>Commodity</label>
+                                <select id="batchCommodity" class="select-styled" required>
+                                    <option value="rice">Rice</option>
+                                    <option value="wheat">Wheat</option>
+                                    <option value="sugar">Sugar</option>
+                                    <option value="kerosene">Kerosene</option>
+                                    <option value="maida">Maida</option>
+                                    <option value="atta">Atta</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Weight (kg / litres)</label>
+                                <input type="number" id="batchWeight" placeholder="e.g. 500" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Destination Shop</label>
+                                <select id="batchShop" class="select-styled" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Farmer (optional)</label>
+                                <select id="batchFarmer" class="select-styled">
+                                    <option value="">— None —</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Moisture Level (%)</label>
+                                <input type="number" id="batchMoisture" placeholder="e.g. 12.5" step="0.1" min="0"
+                                    max="30">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width:100%">📦 Dispatch Batch &amp;
+                                Generate QR</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">🔲 Generated QR Code</h3>
+                        <div id="qrDisplay" style="text-align:center;padding:20px">
+                            <p style="color:var(--text-muted)">Create a batch to generate QR code</p>
+                        </div>
+                        <div id="batchInfo" class="info-box hidden" style="margin-top:12px"></div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:20px">
+                    <h3 class="card-title">📋 Recent Batches</h3>
+                    <div class="table-container" id="batchListTable"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- TOAST -->
+        <div id="toast" class="toast hidden"></div>
+
+        <!-- BILL MODAL -->
+        <div id="billModal" class="modal-overlay hidden" onclick="if(event.target===this)closeBillModal()">
+            <div class="modal-content bill-modal">
+                <button class="modal-close" onclick="closeBillModal()">✕</button>
+                <div id="billContent" class="bill-receipt"></div>
+                <div class="bill-actions">
+                    <button class="btn btn-primary" onclick="printBill()">🖨 Print Bill</button>
+                    <button class="btn btn-ghost" onclick="closeBillModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
